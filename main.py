@@ -30,6 +30,7 @@ Column('professores_id', Integer, ForeignKey('professor.id')),
 Column('materias_id', Integer, ForeignKey('materia.id'))
 )
 
+#Objeto relacional de uma relação many-to-many, visto que vários alunos podem ser vinculados a várias turmas e uma relação aluno-turma terá uma nota
 class Aluno_turma(Base):
     __tablename__ = 'aluno_turma'
     turma_id = Column(Integer, ForeignKey('turma.id'), primary_key=True)
@@ -37,7 +38,11 @@ class Aluno_turma(Base):
     nota = Float
     Aluno = relationship("Aluno")
 
-
+'''
+Por dificultar o processo de criar classes filhas, como seriam Aluno e Professor da classe Pessoa, optei aqui por apenas vinculá-las no Banco de Dados
+Dessa maneira, ao se criar um Professor ou um Aluno, será criada uma entrada na tabela Pessoa, que possuirá as informações que são comuns as duas classes:
+cpf, nome e sobrenome.
+'''
 class Pessoa(Base):
     __tablename__='pessoa'
 
@@ -48,6 +53,14 @@ class Pessoa(Base):
 
     memberships = relationship('Membership', backref='pessoa')
 
+    @classmethod
+    def find_by_id(cls, session, id):
+        return session.query(cls).filter_by(id=id).first()
+    
+    @classmethod
+    def query_all(cls, session):
+        return session.query(cls).all()
+
 class Professor(Base):
     __tablename__='professor'
     id = Column(Integer, ForeignKey('pessoa.id'), primary_key=True )
@@ -57,12 +70,27 @@ class Professor(Base):
     turmas = relationship("Turma") #one to many, um professor pode ter várias turmas, mas cada turma só tem um professor
     materias = relationship("Materia", secondary=professores_materias, back_populates="professores")
 
+    @classmethod
+    def find_by_id(cls, session, id):
+        return session.query(cls).filter_by(id=id).first()
+    
+    @classmethod
+    def query_all(cls, session):
+        return session.query(cls).all()
+
 class Aluno(Base):
     __tablename__='professor'
     id = Column(Integer, ForeignKey('pessoa.id'), primary_key=True )
     pessoa = relationship('Pessoa')
     email = Column(String(120))
 
+    @classmethod
+    def find_by_id(cls, session, id):
+        return session.query(cls).filter_by(id=id).first()
+    
+    @classmethod
+    def query_all(cls, session):
+        return session.query(cls).all()
 
 class Materia(Base):
     __tablename__='materia'
@@ -72,20 +100,40 @@ class Materia(Base):
     professores = relationship("Professor", secondary=professores_materias, back_populates="materias")
     turmas =  relationship("Turma")
 
+    @classmethod
+    def find_by_id(cls, session, id):
+        return session.query(cls).filter_by(id=id).first()
+    
+    @classmethod
+    def query_all(cls, session):
+        return session.query(cls).all()
+
 class Turma(Base):
     __tablename__='turma'
     professor_id=Column(Integer, ForeignKey('professor.id')) #one to many relationship
     materia_id=Column(Integer, ForeignKey('materia.id'))
     alunos = relationship("Aluno_turma")
 
+    @classmethod
+    def find_by_id(cls, session, id):
+        return session.query(cls).filter_by(id=id).first()
 
+    @classmethod
+    def query_all(cls, session):
+        return session.query(cls).all()
 
+Base.metadata.create_all()  #cria as tabelas no banco de dados
+session.commit()    #"commita" as modificações
+
+#função visual apenas
 def line_break():
     print("\n--------------------------------------\n")
 
-
+#faz um "login"
 def login_inicial():
 
+#menu-inicial
+#a utilização de try except dentro de um loop serve para que a pergunta siga sendo feita até que uma opção válida seja fornecida
 def menu_home():
     clear()
     line_break()
@@ -118,11 +166,12 @@ def mostrar_materias():
 
 def mostrar_professores():
     print("Os professores são:")
-    professores = Professor.query.all()
+    professores = Professor.query_all(session)
     print("ID/Primeiro Nome/Segundo Nome/Email/Nível de Formação")
-    line_break
+    line_break()
+    #professores conterá uma lista com todos os professores, ou seja, um elemento iterável, cada objeto dentro do elemento corresponde a um professor
     for professor in professores:
-        pessoa = Pessoa.query.filter_by(id=professor.id)
+        pessoa = Pessoa.find_by_id(session, id=professor.id)
         print(f'{professor.id}/{pessoa.forename}/{pessoa.surname}/{professor.email}/{professor.niveldeformacao}/{professor.materias}\n')
     print('Opções:\n')
     print(' Digite o id do professor que você deseja ver as turmas ou 0 para voltar ao menu principal\n')
@@ -131,11 +180,12 @@ def mostrar_professores():
     while valid_option == False:
         try:
             option = int(input('Opção desejada:\n'))
-            professor=Professor.query.filter_by(id=option)
+            professor=Professor.find_by_id(id=option)
             if option == 0:
                 return menu_home()
 
             elif professor:
+                clear()
                 line_break()
                 print(f'O professor {professor.forename}{professor.surname} é professor das seguintes matérias nas seguintes turmas:')
                 line_break()
