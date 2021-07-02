@@ -68,6 +68,7 @@ class Materia(Base):
 class Turma(Base):
     __tablename__='turma'
     id=Column(Integer, primary_key=True, autoincrement= True)
+    codigo=Column(String(20), unique=True)
     professor_id=Column(Integer, ForeignKey('professor.id')) #one to many relationship
     materia_id=Column(Integer, ForeignKey('materia.id'))
     alunos = relationship("Aluno_turma")

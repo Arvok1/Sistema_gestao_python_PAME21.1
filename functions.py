@@ -21,6 +21,7 @@ def line_break():
 
 #faz um "login" bem básico e sem muita funcionalidade
 def login_inicial():
+    clear()
     line_break()
     login_nao_realizado=True
     while login_nao_realizado:
@@ -54,6 +55,10 @@ def menu_home():
     print("1 - Cadastrar nova matéria\n")
     print("2 - Cadastrar novo professor\n")
     print("3 - Cadastrar novo aluno\n")
+    print("4 - Mostrar todas as matérias\n")
+    print("5 - Mostrar todos os professores\n")
+    print("6 - Mostrar todos os alunos\n")
+    print("7 - Abrir Menu de Turmas\n")
     print("0 - Sair do programa")
     opcao_nao_valida = True
     while opcao_nao_valida == True:
@@ -77,14 +82,20 @@ def menu_home():
 
             elif option == 4:        
                 mostrar_materias()
+
             elif option == 5:
                 mostrar_professores()
+
+            elif option == 6:
+                mostrar_alunos()
+            
+            elif option == 7:
+                menu_turmas()
                 
         except:
-            pass    
-
-        print('Infelizmente essa não é uma opção válida')
-
+            print('Infelizmente essa não é uma opção válida')
+            menu_home()
+            pass
 
 def cadastrar_materia():
     clear()
@@ -98,13 +109,15 @@ def cadastrar_materia():
     materia_existente=session.query(Materia).filter_by(codigo=codigo).first()
     if materia_existente:
         print("Essa Materia já existe")
+        sleep(1)
         cadastrar_materia()
     else:
         materia = Materia(codigo=codigo, nome=nome)
         session.add(materia)
         session.commit()
         print(f'Materia {codigo} cadastrada com sucesso, voltando ao menu')
-        sleep(10)
+        sleep(1)
+        menu_home()
 
     
 def cadastrar_professor():
@@ -125,6 +138,8 @@ def cadastrar_professor():
     pessoa_existente = session.query(Pessoa).filter_by(cpf=cpf).first()
     if pessoa_existente:
         print("Essa pessoa já existe")
+        sleep(1)
+        cadastrar_professor()
     else:
         pessoa_professor = Pessoa(forename=nome, surname=sobrenome, cpf=cpf)
         session.add(pessoa_professor)
@@ -132,7 +147,8 @@ def cadastrar_professor():
         session.add(professor)
         session.commit()
         print(f'Professor {nome} cadastrada com sucesso')
-        sleep(10)
+        sleep(1)
+        menu_home()
 
 def cadastrar_aluno():
     clear()
@@ -153,7 +169,8 @@ def cadastrar_aluno():
     session.add(aluno)
     session.commit()
     print(f'Professor {nome} cadastrada com sucesso')
-    sleep(10)
+    sleep(1)
+    menu_home()
 
 def mostrar_materias():
     print("As matérias são:")
@@ -172,64 +189,152 @@ def mostrar_professores():
     print('Opções:\n')
     print(' Digite o id do professor que você deseja ver as turmas ou 0 para voltar ao menu principal\n')
 
-    valid_option = False
-    while valid_option == False:
-        try:
-            option = int(input('Opção desejada:\n'))
-            professor=Professor.find_by_id(id=option)
-            if option == 0:
-                return menu_home()
 
-            elif professor:
-                clear()
-                line_break()
-                print(f'O professor {professor.forename}{professor.surname} é professor das seguintes matérias nas seguintes turmas:')
-                line_break()
-                for turma in professor.turmas:
-                    print(f'Turma: {turma.codigo} da matéria {turma.materia}')
+    try:
+        option = int(input('Opção desejada:\n'))
+        professor=session.query(Professor).filter_by(id=option).first()
+        if option == 0:
+            menu_home()
 
-                print('Pressione 0 para voltar ao menu anterior ou 1 para voltar ao menu principal')
-                try:
-                    option = int(input('Opção desejada:\n'))
-                    if option == 0:
-                        valid_option = True
-                        mostrar_professores()
+        elif professor:
+            clear()
+            line_break()
+            print(f'O professor {professor.forename}{professor.surname} é professor das seguintes matérias nas seguintes turmas:')
+            line_break()
+            for turma in professor.turmas:
+                print(f'Turma: {turma.codigo} da matéria {turma.materia}')
 
-                    if option == 1:
-                        valid_option = True
-                        menu_home()
-                    else:
-                        valid_option = False
-                        print('Infelizmente essa não é uma opção válida')
-                        pass
-                except:
+            print('Pressione 0 para voltar ao menu anterior ou 1 para voltar ao menu principal')
+            try:
+                option = int(input('Opção desejada:\n'))
+                if option == 0:
+                    #valid_option = True
+                    mostrar_professores()
+
+                if option == 1:
+                    #valid_option = True
+                    menu_home()
+                else:
+                    #valid_option = False
                     pass
-            else:
-                valid_option = False
-                print('Infelizmente essa não é uma opção válida')
+            except:
                 pass
-
-        except:
-            print('Infelizmente essa não é uma opção válida')
-            valid_option = False
+        else:
+            #valid_option = False
             pass
-           
 
+    except:
+        print('Infelizmente essa não é uma opção válida')
+        mostrar_professores()#valid_option = False
+        pass
+           
+def mostrar_alunos():
+    clear()
+    line_break()
+    print("Os alunos são:")
+    alunos = session.query(Aluno).all()
+    print("ID/Primeiro Nome/Segundo Nome/Email")
+    line_break()
+    #alunos conterá uma lista com todos os professores, ou seja, um elemento iterável, cada objeto dentro do elemento corresponde a um professor
+    for aluno in alunos:
+        pessoa = session.query(Pessoa).filter_by(id=aluno.id).first()
+        print(f'{aluno.id}/{pessoa.forename}/{pessoa.surname}/{aluno.email}\n')
+    print('Opções:\n')
+    print(' Digite o id do aluno que você deseja ver as turmas ou 0 para voltar ao menu principal\n')
+
+## ainda não implementada##
+
+    try:
+        option = int(input('Opção desejada:\n'))
+        if option == 0:
+            menu_home()
+
+    except:
+        print('Infelizmente essa não é uma opção válida')
+        mostrar_alunos()#valid_option = False
+        pass
 
 def sair_do_programa():
     print("O programa fechará em 1 segundo")
     exit(0)
 
-'''
+
 def menu_turmas():
+    clear()
+    line_break()
+    print("Escolha uma das opções abaixo:")
+    line_break()
+    print("1 - Cadastrar nova turma\n")
+    print("2 - Designar professor para turma\n")
+    print("3 - Adicionar alunos a turma\n")
+    print("4 - Remover alunos de turma\n")
+    print("5 - Dar a nota final a alunos de turma\n")
+    print("6 - Mostrar todos os alunos de uma turma\n")
+    print("7 - Mostrar todas as turmas cadastradas\n")
+    print("0 - Voltar ao menu principal")
+    opcao_nao_valida = True
+    while opcao_nao_valida == True:
+        try:
+            option = int(input('Opção desejada:\n'))
+            if option == 0:
+                opcao_nao_valida = False
+                menu_home()
+
+            elif option == 1:
+                opcao_nao_valida = False
+                cadastrar_turma()
+                
+            elif option == 2:
+                opcao_nao_valida = False
+                designar_professor()
+
+            elif option == 3:
+                opcao_nao_valida = False
+                designar_aluno()
+
+            elif option == 4:        
+                remover_aluno()
+
+            elif option == 5:
+                aplicar_notas()
+
+            elif option == 6:
+                mostrar_alunos_turma()
+            
+            elif option == 7:
+                menu_turmas()
+                
+        except:
+            print('Infelizmente essa não é uma opção válida')
+            menu_home()
+            pass
+
+def cadastrar_turma():
+    clear()
+    line_break()
+    print("Para cadastrar uma nova turma, insira o código da mesma")
+    codigo=str(input("Código:\n"))
+    print("\n")
+    print(f'Cadastrando a turma com o código {codigo}')
+    turma = Turma(codigo=codigo)
+    session.add(turma)
+    session.commit()
+    print(f'Turma com código {codigo} cadastrada com sucesso')
+    sleep(1)
+    menu_turmas()
 
 def designar_professor():
-
-def adicionar_aluno():
+    clear()
+    line_break()
+    print("Qual turma deseja modificar?")
+    print("\n")
+def designar_aluno():
 
 def remover_aluno():
 
 def aplicar_nota():
+
+def mostrar_alunos_turma():
 
 def mostrar_turmas():
 '''
