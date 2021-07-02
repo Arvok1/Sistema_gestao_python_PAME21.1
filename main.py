@@ -12,10 +12,9 @@ def init_db():
     session.commit()    #"commita" as modificações
 
 
-def main():
-    login_inicial()
+
 
 
 if __name__ == "__main__":
     init_db()
-    main()
+    login_inicial()

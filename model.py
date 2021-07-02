@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Table, Float
 from sqlalchemy.ext.declarative import declarative_base
 
 
-engine = create_engine('sqlite:///db.sqlite', echo=True)
+engine = create_engine('sqlite:///db.sqlite')
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
@@ -38,14 +38,6 @@ class Pessoa(Base):
 
    
 
-    @classmethod
-    def find_by_id(session, id):
-        return session.query(Pessoa).filter_by(id=id).first()
-    
-    @classmethod
-    def query_all(session):
-        return session.query(Pessoa).all()
-
 class Professor(Base):
     __tablename__='professor'
     id = Column(Integer, ForeignKey('pessoa.id'), primary_key=True )
@@ -55,13 +47,6 @@ class Professor(Base):
     turmas = relationship("Turma") #one to many, um professor pode ter várias turmas, mas cada turma só tem um professor
     materias = relationship("Materia", secondary=professores_materias, back_populates="professores")
 
-    @classmethod
-    def find_by_id(session, id):
-        return session.query(Professor).filter_by(id=id).first()
-    
-    @classmethod
-    def query_all(session):
-        return session.query(Professor).all()
 
 class Aluno(Base):
     __tablename__='aluno'
@@ -69,13 +54,6 @@ class Aluno(Base):
     pessoa = relationship('Pessoa')
     email = Column(String(120))
 
-    @classmethod
-    def find_by_id(session, id):
-        return session.query(Aluno).filter_by(id=id).first()
-    
-    @classmethod
-    def query_all(session):
-        return session.query(Aluno).all()
 
 class Materia(Base):
     __tablename__='materia'
@@ -85,17 +63,7 @@ class Materia(Base):
     professores = relationship("Professor", secondary=professores_materias, back_populates="materias")
     turmas =  relationship("Turma")
 
-    @classmethod
-    def find_by_id(session, id):
-        return session.query(Materia).filter_by(id=id).first()
     
-    @classmethod
-    def query_all(session):
-        return session.query(Materia).all()
-
-    @classmethod
-    def query_by_cod(session, cod):
-        return session.query(Materia).filter_by(codigo=cod).first()
 
 class Turma(Base):
     __tablename__='turma'
@@ -104,10 +72,6 @@ class Turma(Base):
     materia_id=Column(Integer, ForeignKey('materia.id'))
     alunos = relationship("Aluno_turma")
 
-    @classmethod
-    def find_by_id(cls, session, id):
-        return session.query(Turma).filter_by(id=id).first()
 
-    @classmethod
-    def query_all(cls, session):
-        return session.query(Turma).all()
+
+

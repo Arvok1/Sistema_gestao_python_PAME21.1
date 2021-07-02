@@ -77,7 +77,9 @@ def menu_home():
 
             elif option == 4:        
                 mostrar_materias()
-
+            elif option == 5:
+                mostrar_professores()
+                
         except:
             pass    
 
@@ -93,11 +95,16 @@ def cadastrar_materia():
     nome=str(input("Nome:\n"))
     print("\n")
     print(f'Cadastrando a matéria {nome} com o código {codigo}?')
-    materia = Materia(codigo=codigo, nome=nome)
-    session.add(materia)
-    session.commit()
-    print(f'Materia {codigo} cadastrada com sucesso')
-    sleep(10)
+    materia_existente=session.query(Materia).filter_by(codigo=codigo).first()
+    if materia_existente:
+        print("Essa Materia já existe")
+        cadastrar_materia()
+    else:
+        materia = Materia(codigo=codigo, nome=nome)
+        session.add(materia)
+        session.commit()
+        print(f'Materia {codigo} cadastrada com sucesso, voltando ao menu')
+        sleep(10)
 
     
 def cadastrar_professor():
@@ -115,13 +122,17 @@ def cadastrar_professor():
     niveldeformacao=str(input("Nível de formação:\n"))
     print("\n")
     print(f'Cadastrando o professor {nome} com o cpf {cpf}?')
-    pessoa_professor = Pessoa(forename=nome, surname=sobrenome, cpf=cpf)
-    session.add(pessoa_professor)
-    professor = Professor(pessoa=pessoa_professor, email=email, niveldeformacao=niveldeformacao)
-    session.add(professor)
-    session.commit()
-    print(f'Professor {nome} cadastrada com sucesso')
-    sleep(10)
+    pessoa_existente = session.query(Pessoa).filter_by(cpf=cpf).first()
+    if pessoa_existente:
+        print("Essa pessoa já existe")
+    else:
+        pessoa_professor = Pessoa(forename=nome, surname=sobrenome, cpf=cpf)
+        session.add(pessoa_professor)
+        professor = Professor(pessoa=pessoa_professor, email=email, niveldeformacao=niveldeformacao)
+        session.add(professor)
+        session.commit()
+        print(f'Professor {nome} cadastrada com sucesso')
+        sleep(10)
 
 def cadastrar_aluno():
     clear()
@@ -151,12 +162,12 @@ def mostrar_professores():
     clear()
     line_break()
     print("Os professores são:")
-    professores = Professor.query_all(session)
+    professores = session.query(Professor).all()
     print("ID/Primeiro Nome/Segundo Nome/Email/Nível de Formação")
     line_break()
     #professores conterá uma lista com todos os professores, ou seja, um elemento iterável, cada objeto dentro do elemento corresponde a um professor
     for professor in professores:
-        pessoa = Pessoa.find_by_id(session, id=professor.id)
+        pessoa = session.query(Pessoa).filter_by(id=professor.id).first()
         print(f'{professor.id}/{pessoa.forename}/{pessoa.surname}/{professor.email}/{professor.niveldeformacao}/{professor.materias}\n')
     print('Opções:\n')
     print(' Digite o id do professor que você deseja ver as turmas ou 0 para voltar ao menu principal\n')
@@ -183,6 +194,7 @@ def mostrar_professores():
                     if option == 0:
                         valid_option = True
                         mostrar_professores()
+
                     if option == 1:
                         valid_option = True
                         menu_home()
@@ -198,9 +210,10 @@ def mostrar_professores():
                 pass
 
         except:
+            print('Infelizmente essa não é uma opção válida')
             valid_option = False
             pass
-        print('Infelizmente essa não é uma opção válida')   
+           
 
 
 def sair_do_programa():
