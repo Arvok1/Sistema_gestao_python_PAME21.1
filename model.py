@@ -72,7 +72,3 @@ class Turma(Base):
     professor_id=Column(Integer, ForeignKey('professor.id')) #one to many relationship
     materia_id=Column(Integer, ForeignKey('materia.id'))
     alunos = relationship("Aluno_turma")
-
-
-
-

@@ -173,7 +173,17 @@ def cadastrar_aluno():
     menu_home()
 
 def mostrar_materias():
-    print("As matérias são:")
+    clear()
+    line_break()
+    print("AS matérias são:")
+    materias = session.query(Materia).all()
+    print("ID/Código/nome")
+    line_break()
+    #professores conterá uma lista com todos os professores, ou seja, um elemento iterável, cada objeto dentro do elemento corresponde a um professor
+    for materia in materias:
+        print(f'{materia.id}/{materia.codigo}/{materia.nome}\n')
+    print('Opções:\n')
+    print(' Digite o id do professor que você deseja ver as turmas ou 0 para voltar ao menu principal\n')
 
 def mostrar_professores():
     clear()
@@ -315,19 +325,62 @@ def cadastrar_turma():
     print("Para cadastrar uma nova turma, insira o código da mesma")
     codigo=str(input("Código:\n"))
     print("\n")
-    print(f'Cadastrando a turma com o código {codigo}')
-    turma = Turma(codigo=codigo)
-    session.add(turma)
-    session.commit()
-    print(f'Turma com código {codigo} cadastrada com sucesso')
-    sleep(1)
-    menu_turmas()
+    turma_existente = session.query(Turma).filter_by(codigo=codigo).first()
+    if turma_existente:
+        print("Essa turma já existe")
+        sleep(1)
+        cadastrar_turma()
+    else:
+        print(f'Cadastrando a turma com o código {codigo}')
+        turma = Turma(codigo=codigo)
+        session.add(turma)
+        session.commit()
+        print(f'Turma com código {codigo} cadastrada com sucesso')
+        sleep(1)
+        menu_turmas()
 
 def designar_professor():
     clear()
     line_break()
     print("Qual turma deseja modificar?")
     print("\n")
+    turmas = session.query(Turma).all()
+    print("ID/Código")
+    line_break()
+    #professores conterá uma lista com todos os professores, ou seja, um elemento iterável, cada objeto dentro do elemento corresponde a um professor
+    for turma in turmas:
+        print(f'{turma.id}/{turma.codigo}\n')
+    print("Pressione 0 para voltar ao menu anterior ou o id da turma desejada")
+    try:
+        option = int(input('Opção desejada:\n'))
+        turma = session.query(Turma).filter_by(id=option).first()
+        if option == 0:
+            #valid_option = True
+            menu_turmas()
+        elif turma:
+            print("Qual desses professores você gostaria de adicionar a turma?")
+            print("Os professores são:")
+            professores = session.query(Professor).all()
+            print("ID/Primeiro Nome/Segundo Nome/Email/Nível de Formação")
+            line_break()
+            #professores conterá uma lista com todos os professores, ou seja, um elemento iterável, cada objeto dentro do elemento corresponde a um professor
+            for professor in professores:
+                pessoa = session.query(Pessoa).filter_by(id=professor.id).first()
+                print(f'{professor.id}/{pessoa.forename}/{pessoa.surname}/{professor.email}/{professor.niveldeformacao}/{professor.materias}\n')
+            
+            prof_option=int(input('Opção desejada:\n'))
+            professor = session.query(Professor).filter_by(id=prof_option)
+            if professor:
+                setattr(turma, 'professor_id', professor.id) #atualiza o atributo professor_id da tabela turma
+                session.commit()
+                print(f'professor {professor.nome} adicionado a turma {turma.codigo}')
+                menu_turmas()
+            else:
+                pass
+    except:
+        menu_turmas()
+
+'''
 def designar_aluno():
 
 def remover_aluno():
